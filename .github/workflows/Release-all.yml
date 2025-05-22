@@ -21,6 +21,7 @@ on:
       - ".clang-format"
 jobs:
   build_macOS:
+    if: false
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -87,13 +88,20 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-2022]
-        qt_ver: [ 6.6.3, 6.7.2 ]
+        #os: [windows-2022]
+        #arch: [ amd64 ]
+        #qt_ver: [ 6.6.3, 6.7.2 ]
+        #qt_arch: [ win64_msvc2019_64 ]
+        include:
+          - os: windows-2022 #windows-11-arm
+            arch: arm64
+            qt_ver: 6.7.2
+            qt_arch: win64_msvc2019_arm64
     steps:
       - uses: jurplel/install-qt-action@v4.2.1
         with:
           version: ${{ matrix.qt_ver }}
-          arch: win64_msvc2019_64
+          arch: ${{ matrix.qt_arch }}
           modules: qtwebengine qtwebchannel qtpositioning qt5compat qtmultimedia qtimageformats qtspeech
           # setup-python: 'false'
       - uses: actions/checkout@v4
@@ -104,7 +112,7 @@ jobs:
         run: |
           # Launch-VsDevShell also provides Ninja
           & 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\Launch-VsDevShell.ps1' `
-            -SkipAutomaticLocation -Arch amd64 -HostArch amd64
+            -SkipAutomaticLocation -Arch ${{ matrix.arch }} -HostArch amd64
           New-Item -Path './build_dir' -ItemType Directory
 
           # RelWithDebInfo + msvc's = .pdb file beside program file.
@@ -135,7 +143,7 @@ jobs:
           ls -R
       - uses: actions/upload-artifact@v4
         with:
-          name: Windows-Qt${{ matrix.qt_ver }}
+          name: Windows-Qt${{ matrix.qt_ver }}-${{ matrix.arch }}
           if-no-files-found: error
           retention-days: 7
           path: |
@@ -144,6 +152,7 @@ jobs:
             ./build_dir/*.pdb
 
   generate_other_staffs:
+    if: false
     runs-on: ubuntu-latest
     outputs:
       newTag: ${{ steps.getNewTag.outputs.newTag }}
@@ -213,6 +222,7 @@ jobs:
           path: ./changelog.txt
 
   publish:
+    if: false
     needs: [build_macOS, build_Windows, generate_other_staffs]
     runs-on: ubuntu-24.04
     env:

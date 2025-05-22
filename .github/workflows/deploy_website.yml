@@ -6,7 +6,7 @@ on:
       - staged 
     paths:
       - 'website/**'
-  workflow_dispatch:
+  #workflow_dispatch:
 
 permissions:
   contents: write
